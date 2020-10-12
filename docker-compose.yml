@@ -1,0 +1,42 @@
+version: '3'
+services:
+    db:
+        container_name: index-zero-db
+        image: postgres
+        environment:
+            POSTGRES_PASSWORD: admin
+            POSTGRES_USER: admin
+        volumes:
+            - db-data:/var/lib/postgresql/data
+        ports:
+            - 5432:5432
+
+    server:
+        build:
+            context: ./src/server/
+            dockerfile: Dockerfile
+        command: npm run dev
+        volumes:
+            - ./src/server:/app
+            - /app/node_modules
+        ports:
+            - 80:8080
+        depends_on:
+            - db
+        environment:
+            DATABASE_URL: db://admin@postgres/indexzero
+
+    client:
+        container_name: index-zero-client
+        build:
+            context: ./src/client/
+            dockerfile: Dockerfile
+        volumes:
+            - ./src/client:/app
+            - /app/node_modules
+        ports:
+            - 8081:8081
+        depends_on:
+            - server
+volumes:
+    db-data:
